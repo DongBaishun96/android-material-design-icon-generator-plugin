@@ -30,7 +30,7 @@ sorry,it do not work at this time.
 # Development
 
 ```
-$ git clone https://github.com/konifar/android-material-design-icon-generator-plugin.git
+$ git clone https://github.com/cat9/android-material-design-icon-generator-plugin.git
 $ cd android-material-design-icon-generator-plugin
 $ git submodule init
 $ git submodule foreach git pull origin master
