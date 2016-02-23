@@ -7,6 +7,8 @@ import org.apache.commons.lang.StringUtils;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by family_lee on 2016/2/8.
@@ -28,9 +30,6 @@ public class Configs {
     private boolean xxhdpi=true;
     private boolean xxxhdpi=true;
     private boolean autoGenXml=true;
-    private boolean iconA=true;
-    private boolean iconB=true;
-    private boolean iconC=true;
 
     private IconInfo[] iconInfos;
 
@@ -67,9 +66,9 @@ public class Configs {
         }else{
             configs=new Configs();
             configs.iconInfos=new IconInfo[3];
-            configs.iconInfos[0]=new IconInfo("${name}_normal","#FFFFFF");
-            configs.iconInfos[1]=new IconInfo("${name}_pressed","#CCCCCC");
-            configs.iconInfos[2]=new IconInfo("${name}_disabled","#222222");
+            configs.iconInfos[0]=new IconInfo(true,"${name}_normal","#FFFFFF","none","true");
+            configs.iconInfos[1]=new IconInfo(true,"${name}_pressed","#CCCCCC","state_pressed","true");
+            configs.iconInfos[2]=new IconInfo(true,"${name}_disabled","#222222","state_enabled","false");
         }
         configs.setConfigFilePath(configFilePath);
         return configs;
@@ -178,29 +177,6 @@ public class Configs {
         return sb.toString();
     }
 
-    public boolean isIconA() {
-        return iconA;
-    }
-
-    public void setIconA(boolean iconA) {
-        this.iconA = iconA;
-    }
-
-    public boolean isIconB() {
-        return iconB;
-    }
-
-    public void setIconB(boolean iconB) {
-        this.iconB = iconB;
-    }
-
-    public boolean isIconC() {
-        return iconC;
-    }
-
-    public void setIconC(boolean iconC) {
-        this.iconC = iconC;
-    }
 
     public boolean isAutoGenXml() {
         return autoGenXml;
@@ -293,20 +269,40 @@ public class Configs {
     }
 
     public String generateResXml(String name){
-        if(iconA && iconB || iconA && iconC){
+
+        List<IconInfo> list= getStateEnabledIconInfos();
+        if(list.size()<2){
+            return null;
+        }else{
             StringBuilder sb=new StringBuilder();
             sb.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n");
             sb.append("<selector xmlns:android=\"http://schemas.android.com/apk/res/android\">\r\n");
-            if(iconB){
-                sb.append((String.format("<item android:state_pressed=\"true\" android:drawable=\"@drawable/%s\" />\r\n",iconInfos[1].getName().replace("${name}",name))));
+
+            for(IconInfo iconInfo:list){
+                if(iconInfo.isStateNone()){
+                    sb.append(String.format("\t<item android:drawable=\"@drawable/%s\"/>\r\n",iconInfo.getName().replace("${name}",name)));
+                }else{
+                    sb.append((String.format("\t<item android:%s=\"%s\" android:drawable=\"@drawable/%s\" />\r\n",iconInfo.getState(),iconInfo.getStateValue(),iconInfo.getName().replace("${name}",name))));
+                }
             }
-            if(iconC){
-                sb.append((String.format("<item android:state_enabled=\"false\" android:drawable=\"@drawable/%s\" />\r\n",iconInfos[2].getName().replace("${name}",name))));
-            }
-            sb.append(String.format("<item android:drawable=\"@drawable/%s\"/>\r\n",iconInfos[0].getName().replace("${name}",name)));
             sb.append("</selector>");
             return sb.toString();
         }
-        return null;
+    }
+
+    private List<IconInfo> getStateEnabledIconInfos(){
+        List<IconInfo> stateNoneIcons=new ArrayList<IconInfo>();
+        List<IconInfo> stateOtherIcons=new ArrayList<IconInfo>();
+        for(IconInfo iconInfo:iconInfos){
+            if(iconInfo.isEnabled()){
+                if(iconInfo.isStateNone()){
+                    stateNoneIcons.add(iconInfo);
+                }else{
+                    stateOtherIcons.add(iconInfo);
+                }
+            }
+        }
+        stateOtherIcons.addAll(stateNoneIcons);
+        return stateOtherIcons;
     }
 }

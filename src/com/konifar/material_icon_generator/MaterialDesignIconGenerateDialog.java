@@ -56,11 +56,12 @@ public class MaterialDesignIconGenerateDialog extends DialogWrapper {
     private static final String ERROR_RESOURCE_DIR_NOTHING_PREFIX = "Can not find resource dir: ";
     private static final String ERROR_CUSTOM_COLOR                = "Can not parse custom color. Please provide color in hex format (#FFFFFF).";
 
-    private static final float SCALE_STEP=0.02f;
+    private static final float SCALE_STEP=0.01f;
 
     private static final String DEFAULT_RES_DIR = "/app/src/main/res";
 
     private static final String FILE_ICON_COMBOBOX_XML     = "template.xml";
+    private static final String FILE_STATE_COMBOBOX_XML     = "states.xml";
 
     private JPanel panelMain;
     private JTextField textFieldFileName;
@@ -91,6 +92,12 @@ public class MaterialDesignIconGenerateDialog extends DialogWrapper {
     private JComboBox comboBoxDp;
     private JCheckBox checkBoxAutoGenerateXml;
     private JSlider scaleSlider;
+    private JComboBox stateValueA;
+    private JComboBox stateA;
+    private JComboBox stateB;
+    private JComboBox stateC;
+    private JComboBox stateValueB;
+    private JComboBox stateValueC;
 
     private Project project;
 
@@ -135,32 +142,6 @@ public class MaterialDesignIconGenerateDialog extends DialogWrapper {
     }
 
     private void initIconsCheckBox() {
-        cbIconA.setSelected(configs.isIconA());
-        cbIconB.setSelected(configs.isIconB());
-        cbIconC.setSelected(configs.isIconC());
-        checkBoxAutoGenerateXml.setSelected(configs.isAutoGenXml());
-
-        cbIconA.addItemListener(new ItemListener() {
-            @Override
-            public void itemStateChanged(ItemEvent event) {
-                configs.setIconA(cbIconA.isSelected());
-            }
-        });
-
-        cbIconB.addItemListener(new ItemListener() {
-            @Override
-            public void itemStateChanged(ItemEvent event) {
-                configs.setIconB(cbIconB.isSelected());
-            }
-        });
-
-        cbIconC.addItemListener(new ItemListener() {
-            @Override
-            public void itemStateChanged(ItemEvent event) {
-                configs.setIconC(cbIconC.isSelected());
-            }
-        });
-
         checkBoxAutoGenerateXml.addItemListener(new ItemListener() {
             @Override
             public void itemStateChanged(ItemEvent event) {
@@ -265,9 +246,9 @@ public class MaterialDesignIconGenerateDialog extends DialogWrapper {
     private void initIconHanlders(){
         iconHandlers=new IconHandler[3];
         IconInfo[] iconInfos= configs.getIconInfos();
-        iconHandlers[0]=new IconHandler(iconInfos[0],nameA,colorA,cbIconA,imageA,btnCreateA);
-        iconHandlers[1]=new IconHandler(iconInfos[1],nameB,colorB,cbIconB,imageB,btnCreateB);
-        iconHandlers[2]=new IconHandler(iconInfos[2],nameC,colorC,cbIconC,imageC,btnCreateC);
+        iconHandlers[0]=new IconHandler(iconInfos[0],nameA,colorA,cbIconA,imageA,btnCreateA,stateA,stateValueA);
+        iconHandlers[1]=new IconHandler(iconInfos[1],nameB,colorB,cbIconB,imageB,btnCreateB,stateB,stateValueB);
+        iconHandlers[2]=new IconHandler(iconInfos[2],nameC,colorC,cbIconC,imageC,btnCreateC,stateC,stateValueC);
     }
 
     private void initIconComboBox() {
@@ -287,6 +268,7 @@ public class MaterialDesignIconGenerateDialog extends DialogWrapper {
 
         if(StringUtils.isEmpty(configs.getLastChooseIcon())){
             comboBoxIcon.setSelectedIndex(0);
+            configs.setLastChooseIcon((String) comboBoxIcon.getSelectedItem());
         }else{
             comboBoxIcon.setSelectedItem(configs.getLastChooseIcon());
         }
@@ -450,8 +432,11 @@ public class MaterialDesignIconGenerateDialog extends DialogWrapper {
         private JCheckBox cbIcon;
         private JLabel lbImage;
         private JButton btnCreate;
+        private JComboBox comboBoxState;
+        private JComboBox comboBoxStateValue;
 
-        public IconHandler(IconInfo iconInfo,JTextField tvName,JTextField tvColor,JCheckBox cbIcon,JLabel lbImage,JButton btnCreate){
+
+        public IconHandler(final IconInfo iconInfo,JTextField tvName,JTextField tvColor,JCheckBox cbIcon,JLabel lbImage,JButton btnCreate,JComboBox comboBoxState,JComboBox comboBoxStateValue){
             this.iconInfo=iconInfo;
             this.tvName=tvName;
             this.tvColor=tvColor;
@@ -459,6 +444,8 @@ public class MaterialDesignIconGenerateDialog extends DialogWrapper {
             this.lbImage=lbImage;
             this.tvName.setText(iconInfo.getName());
             this.tvColor.setText(iconInfo.getColor());
+            this.comboBoxState=comboBoxState;
+            this.comboBoxStateValue=comboBoxStateValue;
             this.btnCreate=btnCreate;
             this.btnCreate.addActionListener(new ActionListener() {
                 @Override
@@ -488,11 +475,57 @@ public class MaterialDesignIconGenerateDialog extends DialogWrapper {
                     configs.save();
                 }
             });
+
+            cbIcon.setSelected(iconInfo.isEnabled());
+            initStatesComboBox();
+            initCbIcon();
             initFileCustomColor();
             initFileCustomName();
         }
 
+        private void initCbIcon(){
+            cbIcon.addItemListener(new ItemListener() {
+                @Override
+                public void itemStateChanged(ItemEvent event) {
+                    iconInfo.setEnabled(cbIcon.isSelected());
+                }
+            });
+        }
 
+
+        private void initStatesComboBox() {
+            Document doc;
+            try {
+                doc = JDOMUtil.loadDocument(getClass().getResourceAsStream(FILE_STATE_COMBOBOX_XML));
+
+                java.util.List<Element> elements = doc.getRootElement().getChildren();
+                for (org.jdom.Element element : elements) {
+                    comboBoxState.addItem(element.getText());
+                }
+            } catch (JDOMException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            comboBoxState.setSelectedItem(iconInfo.getState());
+            comboBoxStateValue.setSelectedItem(iconInfo.getStateValue());
+            comboBoxStateValue.setVisible(iconInfo.isStateNone()?false:true);
+            comboBoxState.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent event) {
+                    iconInfo.setState((String)comboBoxState.getSelectedItem());
+                    comboBoxStateValue.setVisible(iconInfo.isStateNone()?false:true);
+                }
+            });
+            comboBoxStateValue.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent event) {
+                    iconInfo.setStateValue((String) comboBoxStateValue.getSelectedItem());
+                }
+            });
+
+        }
 
         private void initFileCustomColor() {
             tvColor.getDocument().addDocumentListener(new DocumentListener() {

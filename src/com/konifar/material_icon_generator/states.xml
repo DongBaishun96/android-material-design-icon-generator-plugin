@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<states default="none">
+    <option id="none">none</option>
+    <option id="state_above_anchor">state_above_anchor</option>
+    <option id="state_accelerated">state_accelerated</option>
+    <option id="state_activated">state_activated</option>
+    <option id="state_active">state_active</option>
+    <option id="state_checkable">state_checkable</option>
+    <option id="state_checked">state_checked</option>
+    <option id="state_drag_can_accept">state_drag_can_accept</option>
+    <option id="state_drag_hovered">state_drag_hovered</option>
+    <option id="state_empty">state_empty</option>
+    <option id="state_enabled">state_enabled</option>
+    <option id="state_expanded">state_expanded</option>
+    <option id="state_first">state_first</option>
+    <option id="state_focused">state_focused</option>
+    <option id="state_hovered">state_hovered</option>
+    <option id="state_last">state_last</option>
+    <option id="state_long_pressable">state_long_pressable</option>
+    <option id="state_middle">state_middle</option>
+    <option id="state_multiline">state_multiline</option>
+    <option id="state_pressed">state_pressed</option>
+    <option id="state_selected">state_selected</option>
+    <option id="state_single">state_single</option>
+    <option id="state_window_focused">state_window_focused</option>
+</states>
